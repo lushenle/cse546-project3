@@ -21,7 +21,7 @@ result = ''
 
 # Function to read the 'encoding' file
 def open_encoding(filename):
-    file = open(filename, "rb")
+    file = open(filename, 'rb')
     data = pickle.load(file)
     file.close()
     return data
@@ -33,8 +33,8 @@ def download_object(bucket_name, item, dest):
         s3.download_file(bucket_name, item, dest)
         print('Ok')
     except ClientError as e:
-        if e.response['Error']['Code'] == "404":
-            print("The video does not exist: s3://{}/{}".format(bucket_name, item))
+        if e.response['Error']['Code'] == '404':
+            print('The video does not exist: s3://{}/{}'.format(bucket_name, item))
         else:
             raise
     return True
@@ -44,12 +44,12 @@ def download_object(bucket_name, item, dest):
 def upload_object(objects, bucket_name, item):
     try:
         s3.upload_file(objects, bucket_name, item)
-        print("Upload Successful")
+        print('Upload Successful')
     except FileNotFoundError:
-        print("The file was not found")
+        print('The file was not found')
         return False
     except ClientError:
-        print("ClientError...")
+        print('ClientError...')
         return False
     return True
 
@@ -66,7 +66,7 @@ def face_recognition_handler(event, context):
 
     try:
         response = s3.get_object(Bucket=bucket, Key=key)
-        print("CONTENT TYPE: " + response['ContentType'])
+        print('CONTENT TYPE: ' + response['ContentType'])
         print(response['ContentType'])
     except Exception as e:
         print(e)
@@ -86,17 +86,17 @@ def face_recognition_handler(event, context):
 
     # Extracting frames from video using ffmpeg
     os.system(
-        "ffmpeg -i " +
+        'ffmpeg -i ' +
         str(video_file_path) +
-        " -r 1 " +
+        ' -r 1 ' +
         str(path) +
-        "image-%3d.jpeg" +
-        " -loglevel 8"
+        'image-%3d.jpeg' +
+        ' -loglevel 8'
     )
 
     # Using the first image generated, read face_encoding
     face_image = face_recognition.load_image_file(
-        str(path) + "image-001.jpeg")
+        str(path) + 'image-001.jpeg')
     face_encoding = face_recognition.face_encodings(face_image)[0]
 
     # Read the 'encoding' file
@@ -105,11 +105,11 @@ def face_recognition_handler(event, context):
 
     # For each known face, determine whether the current face matches it,
     # and the matching name is stored in the result
-    for encoding in enumerate(total_face_encoding["encoding"]):
+    for encoding in enumerate(total_face_encoding['encoding']):
         match = face_recognition.compare_faces(
             [encoding[1]], face_encoding)
         if match[0]:
-            result = total_face_encoding["name"][encoding[0]]
+            result = total_face_encoding['name'][encoding[0]]
             break
 
     # Query for matching records in dynamodb
@@ -125,7 +125,7 @@ def face_recognition_handler(event, context):
 
     with open(path + csv_name, mode='w') as f:
         writer = csv.writer(f)
-        writer.writerow([item["name"], item["major"], item["year"]])
+        writer.writerow([item['name'], item['major'], item['year']])
 
     # Uploading results to S3 output bucket
     upload_object(path + csv_name, output_bucket, csv_name)
